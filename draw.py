@@ -1,85 +1,135 @@
 import pygame
 import sys
-import random
 
-WINDOW_WIDTH = 800
-WINDOW_HEIGHT = 800
+
+WINDOW_WIDTH = 640
+WINDOW_HEIGHT = 480
 
 # Colors
+BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
-BLACK = (0, 0, 0)
+CYAN = (19, 69, 99)
 
 pygame.init()
 
 game_window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-pygame.display.set_caption("Line Drawing Game")
+icon = pygame.image.load('Assets/draw.png')
+pygame.display.set_caption("Draw V2")
+pygame.display.set_icon(icon)
+game_window.fill((WHITE))
 
-game_run = True
+font_komika = pygame.font.SysFont(None, 60)
+background = pygame.image.load('Assets/background.jpg').convert()
 
-prev_point = None
-mouse_mode = 0
-game_window.fill((0,0,0))
 clock = pygame.time.Clock()
-FPS = 120
+FPS = 60
 
+# Drawing Text on Screen 
 
-def draw(event):
-    global prev_point
-    curr_point = event.pos
-    if prev_point is not None:
-        pygame.draw.aaline(game_window, random_color, prev_point, curr_point, 3)
-    prev_point = curr_point
+def draw_text(text, font, surface, color, x, y):
+    textobj = font.render(text, False, color, WHITE)
+    textobj.set_colorkey(WHITE)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    game_window.blit(textobj, textrect)
+    return textobj, textrect
 
-def eraser(event):
-    pygame.draw.circle(game_window,BLACK,event.pos,10)
-    # pygame.draw.aaline(game_window, (0,0,0), prev_point, curr_point, 10)
+# Creating a Surface for chosen button
+def chsn(surface, alpha = 40, color = BLACK):
+    glare = pygame.Surface(surface.get_size())
+    glare.set_alpha(alpha)
+    glare.fill(color)
+    return glare
 
+# Rendering the chosen button surface
+def btn_chsn(mx, my, click, btn_rect, btn_srf, glr_srf):
+    if btn_rect.collidepoint(mx, my):
+        game_window.blit(btn_srf, btn_rect)
+        game_window.blit(glr_srf, btn_rect)
+        if click:
+            return True
+    elif ~btn_rect.collidepoint(mx, my):
+        game_window.blit(btn_srf, btn_rect)
+    return False
 
-def clear():
-    global prev_point
-    game_window.fill((0,0,0))
-    prev_point = None
+# Main Menu
 
+def main_menu():
 
-while game_run:
+    # Title Image
+    title = pygame.image.load("Assets/Title.png").convert_alpha()
+    title.set_colorkey(WHITE)
+    background.blit(title, (140, 50))
 
-    
-    for event in pygame.event.get():
-        # print(event)
+    game_window.blit(background, (0, 0))
+    BUTTON_X = 220
 
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            mouse_mode = 1
-            random_color = (random.randint(0, 255), random.randint(
-                0, 255), random.randint(0, 255))
-        
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
-            mouse_mode = 2
+    # Draw Button
+    draw_text1, draw_button = draw_text('Draw', font_komika,
+                                        game_window, CYAN, BUTTON_X, 170)
 
-        if event.type == pygame.MOUSEBUTTONUP:
-            mouse_mode = 0
-            prev_point = None
+    # Options Button
+    opt_text, opt_button = draw_text('Options', font_komika,
+                                     game_window, CYAN, BUTTON_X, 230)
 
-        if event.type == pygame.MOUSEMOTION and mouse_mode == 1:
-            draw(event)
-        if event.type == pygame.MOUSEMOTION and mouse_mode == 2:
-            eraser(event)
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_w:
-                clear()
-            elif event.key == pygame.K_UP:
-                FPS += 60
-            elif event.key == pygame.K_DOWN:
-                FPS = 30
+    # About Button
+    abt_text, abt_button = draw_text('About', font_komika,
+                                     game_window, CYAN, BUTTON_X, 290)
 
-        if event.type == pygame.QUIT:
-            game_run = False
-
+    click = False
     pygame.display.update()
-    # FPS
-    clock.tick(FPS)
 
-pygame.quit()
-sys.exit()
+    glare_draw = chsn(draw_text1)
+    glare_opt = chsn(opt_text)
+    glare_abt = chsn(abt_text)
+
+    while True:
+
+        # Mouse Positon
+        mx, my = pygame.mouse.get_pos()
+        game_window.blit(background, (0, 0))
+
+        if btn_chsn(mx, my, click, draw_button, draw_text1, glare_draw):
+            return draw()
+        if btn_chsn(mx, my, click, opt_button, opt_text, glare_opt):
+            return draw()
+        if btn_chsn(mx, my, click, abt_button, abt_text, glare_abt):
+            return draw()
+        click = False
+        for event in pygame.event.get():
+            print(event)
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                print("YES")
+                click = True
+        pygame.display.update()
+        clock.tick(FPS)
+
+
+def draw():
+    game_window.fill(WHITE)
+    while True:
+
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return main_menu()
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        pygame.display.update()
+        clock.tick(FPS)
+
+# def opt():
+
+# def abt():
+
+
+if __name__ == '__main__':
+    main_menu()
