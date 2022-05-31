@@ -3,7 +3,7 @@ import sys
 from button_class import Button
 import webbrowser
 import numpy
-
+from datetime import datetime
 WINDOW_WIDTH = 900
 WINDOW_HEIGHT = 600
 
@@ -19,7 +19,7 @@ CYAN = (19, 69, 99)
 YELLOW = (255,255,0)
 GREY = (211, 211, 211)
 clock = pygame.time.Clock()
-FPS = 120
+FPS = 300000
 
 game_window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
@@ -44,6 +44,7 @@ def main_menu():
     BUTTON_X = 220
     BUTTON_Y = 170
     BUTTON_SPACE = 60
+    
     # Draw Button
     draw_button = Button(BUTTON_X, BUTTON_Y, game_window)
     draw_button.draw_text('Draw', sysfont, CYAN)
@@ -95,7 +96,7 @@ class Draw:
         surface.blit(self.drawsurface,(0,0)) 
 
     def erase(self,pos):
-        pygame.draw.circle(self.drawsurface,BLACK,pos, 10, 0)
+        pygame.draw.circle(self.drawsurface,WHITE,pos, 10, 0)
 
     def clear(self):
         self.drawsurface.fill(WHITE)
@@ -121,6 +122,7 @@ class Draw:
                 if surf_array[x, y] != current_color:
                     continue
             except IndexError:
+                frontier.pop()
                 continue
             surf_array[x, y] = fill_color
             # Then we append the neighbours of the pixel in the current position to our 'frontier' list.
@@ -137,7 +139,6 @@ class Draw:
         return True
     def image(self):
         return self.drawsurface
-
 
 def draw():
 
@@ -211,7 +212,9 @@ def draw():
         if white_color.button_selected(mx,my,click):
             color = WHITE
         if save_button.button_selected(mx, my, click): 
-            pygame.image.save(draw_surface.image(),'Save/test.png')  
+            now = datetime.now()
+            dt_string = now.strftime("%d-%m-%Y %H%M Hrs %S Sec")
+            pygame.image.save(draw_surface.image(),f'Save/{dt_string}.png')  
         if bucket_button.button_selected(mx,my,click):
             paint_mode = 1
         if paint_button.button_selected(mx,my,click):
